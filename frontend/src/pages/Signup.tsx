@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { User as UserIcon, Mail, Lock } from 'lucide-react';
+import { User as UserIcon, Mail } from 'lucide-react';
 import { authApi } from '../api/endpoints';
 import { ApiError } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { Spinner } from '../components/ui/Spinner';
+import { PasswordInput } from '../components/ui/PasswordInput';
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton';
+import { OwnerLoginCallout } from '../components/auth/OwnerLoginCallout';
 import { useConfigStore } from '../store/configStore';
 
 export function Signup() {
@@ -79,20 +81,16 @@ export function Signup() {
           </div>
           <div>
             <label htmlFor="password" className="mb-1.5 block text-sm font-medium">Password</label>
-            <div className="relative">
-              <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input pl-10"
-                placeholder="At least 6 characters"
-              />
-            </div>
+            <PasswordInput
+              id="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input"
+              placeholder="At least 6 characters"
+            />
           </div>
 
           {error && <p className="text-sm font-medium text-red-600">{error}</p>}
@@ -121,6 +119,8 @@ export function Signup() {
             Sign in
           </Link>
         </p>
+
+        <OwnerLoginCallout />
       </motion.div>
     </div>
   );

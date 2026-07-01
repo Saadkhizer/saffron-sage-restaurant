@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { ShieldCheck, Mail, Lock } from 'lucide-react';
+import { ShieldCheck, Mail } from 'lucide-react';
 import { authApi } from '../../api/endpoints';
 import { ApiError } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 import { Spinner } from '../../components/ui/Spinner';
+import { PasswordInput } from '../../components/ui/PasswordInput';
 
 export function AdminLogin() {
   const setSession = useAuthStore((s) => s.setSession);
@@ -69,18 +70,15 @@ export function AdminLogin() {
           </div>
           <div>
             <label htmlFor="ad-pass" className="mb-1.5 block text-sm font-medium text-stone-300">Password</label>
-            <div className="relative">
-              <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500" />
-              <input
-                id="ad-pass"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-stone-700 bg-stone-800 py-2.5 pl-10 pr-4 text-sm text-white placeholder-stone-500 focus:border-brand-500"
-                placeholder="••••••••"
-              />
-            </div>
+            <PasswordInput
+              dark
+              id="ad-pass"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-stone-700 bg-stone-800 py-2.5 text-sm text-white placeholder-stone-500 focus:border-brand-500"
+              placeholder="••••••••"
+            />
           </div>
 
           {error && <p className="text-sm font-medium text-red-400">{error}</p>}
