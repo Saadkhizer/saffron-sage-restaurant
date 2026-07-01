@@ -4,11 +4,13 @@
   "private": true,
   "description": "Full-stack restaurant ordering website (frontend + backend)",
   "scripts": {
+    "postinstall": "cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently -k -n backend,frontend -c green,cyan \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "seed": "cd backend && npm run seed",
-    "build": "cd frontend && npm run build",
+    "build": "cd backend && npm run seed && cd ../frontend && npm run build",
+    "start": "cd backend && npm start",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
   },
   "devDependencies": {
