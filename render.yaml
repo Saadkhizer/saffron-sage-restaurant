@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: saffron-sage-restaurant
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: cd backend && npm install && npm run seed && cd ../frontend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: RESTAURANT_NAME
+        value: Saffron & Sage
+      - key: CURRENCY_CODE
+        value: PKR
+      - key: CURRENCY_SYMBOL
+        value: Rs
+      - key: DELIVERY_FEE_CENTS
+        value: 299
+      - key: GOOGLE_CLIENT_ID
+        sync: false
