@@ -80,7 +80,7 @@ export const MenuCard = forwardRef<HTMLElement, { item: MenuItem }>(function Men
           </span>
           <button
             onClick={handleAdd}
-            className="grid h-10 w-10 place-items-center rounded-full bg-brand-600 text-white shadow-sm transition hover:bg-brand-700 active:scale-95"
+            className="grid h-10 w-10 place-items-center rounded-full bg-brand-700 text-white shadow-sm transition hover:bg-brand-800 active:scale-95"
             aria-label={`Add ${item.name} to cart`}
           >
             <Plus size={18} />

@@ -37,7 +37,6 @@ export function Footer() {
             <li><Link to="/" className="hover:text-brand-400">Home</Link></li>
             <li><Link to="/menu" className="hover:text-brand-400">Menu</Link></li>
             <li><Link to="/dashboard" className="hover:text-brand-400">My orders</Link></li>
-            <li><Link to="/admin/login" className="hover:text-brand-400">Owner login</Link></li>
           </ul>
         </div>
         <div>

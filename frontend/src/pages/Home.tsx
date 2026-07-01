@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { ArrowRight, Play, Leaf, ChefHat, Truck, ShieldCheck, Star, Quote } from 'lucide-react';
+import { ArrowRight, ChevronDown, Flame, Leaf, ChefHat, Truck, ShieldCheck, Star, Quote } from 'lucide-react';
 import type { MenuItem } from '../types';
 import { menuApi } from '../api/endpoints';
 import { MenuCard } from '../components/menu/MenuCard';
 import { MenuCardSkeleton } from '../components/ui/Skeleton';
+import { FoodImage } from '../components/ui/FoodImage';
+import { formatPrice } from '../lib/format';
 import { useConfigStore } from '../store/configStore';
 
 const features = [
@@ -50,92 +52,107 @@ export function Home() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute -left-32 top-10 h-72 w-72 rounded-full bg-brand-100/60 blur-3xl dark:bg-brand-900/20" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 md:grid-cols-2 md:py-20">
+      {/* Hero — bold, dark, burger-forward */}
+      <section className="relative overflow-hidden bg-stone-950 text-white">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-brand-600/25 blur-3xl" />
+          <div className="absolute -right-10 top-1/3 h-80 w-80 rounded-full bg-gold-500/20 blur-3xl" />
+          <div
+            className="absolute inset-0 opacity-[0.06]"
+            style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '26px 26px' }}
+          />
+        </div>
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24 lg:px-8">
+          {/* Copy */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
-              Delicious. Fresh. Made for you.
-            </p>
-            <h1 className="mt-4 font-display text-5xl font-bold leading-[1.05] sm:text-6xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-sm font-semibold text-gold-400">
+              <Flame size={14} /> Flame-grilled · Fresh · Bold
+            </span>
+            <h1 className="mt-5 font-display text-5xl font-bold uppercase leading-[0.92] sm:text-6xl lg:text-7xl">
               Crave it.
               <br />
-              Grab{' '}
-              <span className="relative whitespace-nowrap text-brand-600">
-                it.
-                <svg
-                  className="absolute -bottom-2 left-0 w-full text-gold-500"
-                  viewBox="0 0 100 12"
-                  preserveAspectRatio="none"
-                  aria-hidden
-                >
-                  <path d="M2 9 Q 50 0 98 7" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
-                </svg>
-              </span>
+              Grab <span className="text-gold-400">it.</span>
             </h1>
-            <p className="mt-6 max-w-md text-lg text-stone-600 dark:text-stone-300">
-              Experience a delightful journey of flavors at {name} — made with fresh
-              ingredients and a passion for perfection.
+            <p className="mt-5 max-w-md text-lg text-stone-300">
+              Juicy, stacked-to-order burgers and fast-food favorites at {name} — delivered
+              hot and done your way.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/menu" className="btn-primary h-12 px-7 text-base">
-                Explore Menu <ArrowRight size={18} />
+                Order Now <ArrowRight size={18} />
               </Link>
-              <a href="#dishes" className="btn-outline h-12 gap-2 px-6 text-base">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-white">
-                  <Play size={13} className="ml-0.5 fill-current" />
+              <a
+                href="#dishes"
+                className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/20 px-6 text-base font-semibold text-white transition hover:bg-white/10"
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-gold-500 text-stone-900">
+                  <ChevronDown size={16} />
                 </span>
-                Watch Video
+                See Popular Dishes
               </a>
             </div>
 
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
               {features.map((f) => (
                 <div key={f.title} className="flex flex-col gap-1.5">
-                  <f.icon size={22} className="text-brand-600" />
-                  <p className="text-sm font-semibold leading-tight">{f.title}</p>
-                  <p className="text-xs text-stone-500 dark:text-stone-400">{f.text}</p>
+                  <f.icon size={22} className="text-gold-400" />
+                  <p className="text-sm font-semibold leading-tight text-white">{f.title}</p>
+                  <p className="text-xs text-stone-400">{f.text}</p>
                 </div>
               ))}
             </div>
           </motion.div>
 
+          {/* Burger + floating dish cards */}
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative mx-auto max-w-sm md:max-w-none"
+            className="relative mx-auto w-full max-w-sm md:max-w-none"
           >
-            <div className="aspect-square overflow-hidden rounded-full shadow-2xl ring-8 ring-white dark:ring-stone-900">
-              <img
-                src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=70"
-                alt="A fresh, beautifully plated dish"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.parentElement?.classList.add('bg-brand-100');
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+            {/* glow behind the burger */}
+            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-brand-600/50 to-gold-500/40 blur-3xl" />
+            {/* burger displayed directly on the page — soft radial fade, no card frame */}
+            <img
+              src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=85"
+              alt="A juicy gourmet cheeseburger"
+              className="relative aspect-square w-full scale-105 object-cover drop-shadow-2xl"
+              style={{
+                WebkitMaskImage: 'radial-gradient(circle at 50% 47%, #000 55%, transparent 72%)',
+                maskImage: 'radial-gradient(circle at 50% 47%, #000 55%, transparent 72%)',
+              }}
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+
+            {/* Delivery badge */}
+            <div className="absolute right-0 top-6 rounded-2xl bg-white/10 px-4 py-2 text-center ring-1 ring-white/15 backdrop-blur">
+              <p className="text-lg font-bold text-gold-400">30 Min</p>
+              <p className="text-[11px] text-stone-300">Delivery</p>
             </div>
-            <div className="absolute -bottom-2 left-2 flex items-center gap-3 rounded-2xl bg-white p-3 shadow-xl dark:bg-stone-800 sm:left-0">
-              <div className="flex -space-x-2">
-                {['#fca5a5', '#fdba74', '#86efac', '#93c5fd'].map((c) => (
-                  <span key={c} className="h-7 w-7 rounded-full border-2 border-white dark:border-stone-800" style={{ background: c }} />
-                ))}
-              </div>
-              <div>
-                <div className="flex items-center gap-1 text-sm font-bold">
-                  4.8k+
-                  <Star size={13} className="fill-amber-400 text-amber-400" />
+
+            {/* Floating popular items */}
+            {popular?.slice(0, 2).map((it, i) => (
+              <motion.div
+                key={it.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 + i * 0.15 }}
+                className={`absolute flex items-center gap-2 rounded-2xl bg-white/10 p-2 pr-3 ring-1 ring-white/15 backdrop-blur ${
+                  i === 0 ? '-left-2 bottom-16 sm:-left-6' : 'bottom-2 right-2'
+                }`}
+              >
+                <FoodImage src={it.image} alt={it.name} className="h-11 w-11 rounded-xl" />
+                <div>
+                  <p className="max-w-28 truncate text-xs font-semibold leading-tight text-white">{it.name}</p>
+                  <p className="text-xs font-bold text-gold-400">{formatPrice(it.priceCents)}</p>
                 </div>
-                <p className="text-xs text-stone-500">Happy Customers</p>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -144,10 +161,14 @@ export function Home() {
       <section id="dishes" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">Popular dishes</p>
-            <h2 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Our Most Loved Dishes</h2>
+            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-gold-500">
+              <Flame size={15} /> Popular dishes
+            </p>
+            <h2 className="mt-1.5 font-display text-4xl font-bold uppercase leading-[0.95] sm:text-5xl">
+              Our Most<br className="hidden sm:block" /> Loved Dishes
+            </h2>
           </div>
-          <Link to="/menu" className="hidden items-center gap-1 text-sm font-semibold text-brand-600 hover:gap-2 sm:inline-flex">
+          <Link to="/menu" className="hidden items-center gap-1 text-sm font-semibold text-gold-500 hover:gap-2 sm:inline-flex">
             View Full Menu <ArrowRight size={16} />
           </Link>
         </div>
