@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream-50 text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-cream-50 dark:ring-offset-stone-950;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-stone-700 hover:bg-stone-100 dark:text-stone-200 dark:hover:bg-stone-800;
+  }
+  .btn-outline {
+    @apply btn border border-stone-300 bg-white text-stone-800 hover:border-brand-400 hover:text-brand-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:border-brand-500;
+  }
+  .input {
+    @apply w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 transition focus:border-brand-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100;
+  }
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900;
+  }
+}
+
+/* Loading skeleton shimmer */
+.skeleton {
+  @apply relative overflow-hidden bg-stone-200 dark:bg-stone-800;
+}
+.skeleton::after {
+  @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-white/10;
+  content: '';
+}
