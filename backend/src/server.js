@@ -31,6 +31,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Owner-uploaded dish photos (saved by /api/admin/menu/upload).
+app.use('/uploads', express.static(join(__dirname, '..', 'data', 'uploads')));
+
 // In production the frontend is built to ../frontend/dist and served from this
 // same service, so the whole app is one URL with no CORS/proxy to configure.
 // Locally this folder doesn't exist (Vite's own dev server handles the frontend

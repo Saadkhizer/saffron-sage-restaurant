@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Flame } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Flame, ImagePlus } from 'lucide-react';
 import type { Category, MenuItem } from '../../types';
 import { adminApi, menuApi } from '../../api/endpoints';
 import type { MenuItemInput } from '../../api/endpoints';
@@ -138,6 +138,26 @@ function ItemEditor({
   const [available, setAvailable] = useState(item?.available ?? true);
   const [newCat, setNewCat] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Owner picks a photo from their phone/computer; we upload it and store the
+  // returned /uploads/... path in the same `image` field a URL would use.
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow picking the same file again
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await adminApi.uploadImage(file);
+      setImage(url);
+      toast.success('Photo uploaded');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const addCategory = async () => {
     const trimmed = newCat.trim();
@@ -224,8 +244,51 @@ function ItemEditor({
             <button type="button" onClick={addCategory} className="btn-outline shrink-0">Add</button>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Image URL</label>
-            <input className={field} value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://…" />
+            <label className="mb-1.5 block text-sm font-medium">Dish photo</label>
+            <div className="flex items-center gap-3">
+              {image ? (
+                <div className="relative shrink-0">
+                  <FoodImage src={image} alt="Dish preview" className="h-16 w-16 rounded-xl" />
+                  <button
+                    type="button"
+                    onClick={() => setImage('')}
+                    aria-label="Remove photo"
+                    className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-stone-700 text-white transition hover:bg-red-600"
+                  >
+                    <X size={11} />
+                  </button>
+                </div>
+              ) : (
+                <div className="grid h-16 w-16 shrink-0 place-items-center rounded-xl border-2 border-dashed border-stone-300 text-stone-400 dark:border-stone-600">
+                  <ImagePlus size={20} />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="btn-outline w-full"
+                >
+                  {uploading ? <Spinner /> : <><ImagePlus size={15} /> {image ? 'Change photo' : 'Upload photo'}</>}
+                </button>
+                <p className="mt-1 text-[11px] text-stone-400">
+                  From your phone or computer · JPG, PNG or WEBP · up to 5 MB
+                </p>
+              </div>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+            <details className="mt-2">
+              <summary className="cursor-pointer text-xs text-stone-400 hover:text-stone-600 dark:hover:text-stone-300">
+                Use an image URL instead
+              </summary>
+              <input
+                className="input mt-1.5"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="https://…"
+              />
+            </details>
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium">Tags (comma separated)</label>

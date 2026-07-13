@@ -1,5 +1,6 @@
 
-import { api } from './client';
+import { api, ApiError } from './client';
+import { useAuthStore } from '../store/authStore';
 import type {
   Address,
   AdminOrder,
@@ -83,6 +84,22 @@ export const adminApi = {
     api<{ ok: boolean }>(`/admin/menu/${id}`, { method: 'DELETE', auth: true }),
   createCategory: (name: string) =>
     api<Category>('/admin/categories', { method: 'POST', auth: true, body: { name } }),
+  // Multipart upload — bypasses the JSON api() helper on purpose.
+  uploadImage: async (file: File): Promise<{ url: string }> => {
+    const form = new FormData();
+    form.append('image', file);
+    const token = useAuthStore.getState().token;
+    const res = await fetch('/api/admin/menu/upload', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: form,
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new ApiError(data?.error || 'Upload failed', res.status);
+    }
+    return data as { url: string };
+  },
 };
 
 export const addressApi = {

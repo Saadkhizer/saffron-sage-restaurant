@@ -1,9 +1,54 @@
 import { Router } from 'express';
+import multer from 'multer';
+import { randomBytes } from 'crypto';
+import { mkdirSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import db from '../db.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 router.use(requireAuth, requireRole('owner'));
+
+/* ---------------------------- image uploads ---------------------------- */
+
+// Dish photos are stored next to the database and served at /uploads/<file>,
+// so the owner can add pictures straight from a phone or computer instead of
+// hunting for a hosted image URL.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const uploadsDir = join(__dirname, '..', '..', 'data', 'uploads');
+mkdirSync(uploadsDir, { recursive: true });
+
+const imageExt = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+};
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadsDir,
+    filename: (_req, file, cb) =>
+      cb(null, `${Date.now()}-${randomBytes(4).toString('hex')}${imageExt[file.mimetype]}`),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => cb(null, !!imageExt[file.mimetype]),
+});
+
+router.post('/menu/upload', (req, res) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      const message =
+        err.code === 'LIMIT_FILE_SIZE' ? 'Image must be 5 MB or smaller' : 'Upload failed';
+      return res.status(400).json({ error: message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'Choose a JPG, PNG, WEBP, or GIF image up to 5 MB' });
+    }
+    res.status(201).json({ url: `/uploads/${req.file.filename}` });
+  });
+});
 
 /* ------------------------------- helpers ------------------------------- */
 

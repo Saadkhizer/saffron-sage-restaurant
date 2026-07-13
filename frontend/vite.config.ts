@@ -12,6 +12,11 @@ export default defineConfig({
         target: 'http://localhost:4500',
         changeOrigin: true,
       },
+      // Owner-uploaded dish photos live on the backend.
+      '/uploads': {
+        target: 'http://localhost:4500',
+        changeOrigin: true,
+      },
     },
   },
 });
