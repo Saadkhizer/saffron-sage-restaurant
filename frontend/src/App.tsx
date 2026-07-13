@@ -12,6 +12,7 @@ import { Home } from './pages/Home';
 import { MenuPage } from './pages/MenuPage';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { OwnerPortal } from './pages/OwnerPortal';
 import { Checkout } from './pages/Checkout';
 import { OrderConfirmation } from './pages/OrderConfirmation';
 import { OrderTracking } from './pages/OrderTracking';
@@ -37,6 +38,7 @@ function AppRoutes() {
           <Route path="menu" element={<MenuPage />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="owner" element={<OwnerPortal />} />
           <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="order/:id/confirmed" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
           <Route path="order/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />

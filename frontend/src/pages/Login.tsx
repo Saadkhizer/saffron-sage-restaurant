@@ -9,7 +9,6 @@ import { useAuthStore } from '../store/authStore';
 import { Spinner } from '../components/ui/Spinner';
 import { PasswordInput } from '../components/ui/PasswordInput';
 import { GoogleAuthButton } from '../components/auth/GoogleAuthButton';
-import { OwnerLoginCallout } from '../components/auth/OwnerLoginCallout';
 import { useConfigStore } from '../store/configStore';
 
 export function Login() {
@@ -107,8 +106,6 @@ export function Login() {
             Create an account
           </Link>
         </p>
-
-        <OwnerLoginCallout />
       </motion.div>
     </div>
   );

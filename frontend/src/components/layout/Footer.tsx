@@ -56,8 +56,11 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-stone-800 py-5 text-center text-xs text-stone-500">
-        © {new Date().getFullYear()} {name}. Demo project — not a real restaurant.
+      <div className="flex flex-col items-center justify-between gap-2 border-t border-stone-800 px-4 py-5 text-center text-xs text-stone-500 sm:flex-row sm:px-8">
+        <span>© {new Date().getFullYear()} {name}. Demo project — not a real restaurant.</span>
+        <Link to="/owner" className="font-medium text-stone-400 transition hover:text-brand-400">
+          Owner Console
+        </Link>
       </div>
     </footer>
   );
