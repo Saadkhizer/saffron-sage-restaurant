@@ -53,6 +53,14 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Something went wrong' });
 });
 
+import db from './db.js';
+import { seed } from './seed.js';
+const menuCount = db.prepare("SELECT COUNT(*) as c FROM menu_items").get().c;
+if (menuCount === 0) {
+  console.log('🌱 Seeding database...');
+  seed();
+}
+
 app.listen(PORT, () => {
   console.log(`API ready on http://localhost:${PORT}`);
 });

@@ -237,24 +237,38 @@ const reset = db.transaction(() => {
   }
 });
 
-reset();
-console.log(
-  `Seeded ${categories.length} categories and ${items.length} menu items.`,
-);
-
-// Ensure an owner account exists for the admin console.
-const ownerEmail = "owner@saffronsage.test";
-const existingOwner = db
-  .prepare("SELECT id FROM users WHERE email = ?")
-  .get(ownerEmail);
-if (!existingOwner) {
-  db.prepare(
-    "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')",
-  ).run("Restaurant Owner", ownerEmail, bcrypt.hashSync("owner123", 10));
-  console.log("Created owner login → owner@saffronsage.test / owner123");
-} else {
-  db.prepare("UPDATE users SET role = 'owner' WHERE email = ?").run(ownerEmail);
-  console.log("Owner account ready → owner@saffronsage.test");
+export function seed() {
+  reset();
+  console.log(
+    `Seeded ${categories.length} categories and ${items.length} menu items.`,
+  );
 }
 
-process.exit(0);
+export function seed() {
+  reset();
+  console.log(
+    `Seeded ${categories.length} categories and ${items.length} menu items.`,
+  );
+
+  // Ensure an owner account exists for the admin console.
+  const ownerEmail = "owner@saffronsage.test";
+  const existingOwner = db
+    .prepare("SELECT id FROM users WHERE email = ?")
+    .get(ownerEmail);
+  if (!existingOwner) {
+    db.prepare(
+      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')",
+    ).run("Restaurant Owner", ownerEmail, bcrypt.hashSync("owner123", 10));
+    console.log("Created owner login → owner@saffronsage.test / owner123");
+  } else {
+    db.prepare("UPDATE users SET role = 'owner' WHERE email = ?").run(
+      ownerEmail,
+    );
+    console.log("Owner account ready → owner@saffronsage.test");
+  }
+}
+
+if (process.argv[1].includes("seed")) {
+  seed();
+  process.exit(0);
+}
