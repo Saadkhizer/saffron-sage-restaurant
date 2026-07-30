@@ -1,3 +1,6 @@
+import db from "./db.js";
+import bcrypt from "bcryptjs";
+
 const reset = db.transaction(() => {
   db.exec(
     "DELETE FROM order_items; DELETE FROM orders; DELETE FROM menu_items; DELETE FROM categories;",
@@ -33,16 +36,23 @@ const reset = db.transaction(() => {
 
 export function seed() {
   reset();
-  console.log(`Seeded ${categories.length} categories and ${items.length} menu items.`);
+  console.log(
+    `Seeded ${categories.length} categories and ${items.length} menu items.`,
+  );
 
   const ownerEmail = "owner@saffronsage.test";
-  const existingOwner = db.prepare("SELECT id FROM users WHERE email = ?").get(ownerEmail);
+  const existingOwner = db
+    .prepare("SELECT id FROM users WHERE email = ?")
+    .get(ownerEmail);
   if (!existingOwner) {
-    db.prepare("INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')")
-      .run("Restaurant Owner", ownerEmail, bcrypt.hashSync("owner123", 10));
+    db.prepare(
+      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')",
+    ).run("Restaurant Owner", ownerEmail, bcrypt.hashSync("owner123", 10));
     console.log("Created owner login → owner@saffronsage.test / owner123");
   } else {
-    db.prepare("UPDATE users SET role = 'owner' WHERE email = ?").run(ownerEmail);
+    db.prepare("UPDATE users SET role = 'owner' WHERE email = ?").run(
+      ownerEmail,
+    );
     console.log("Owner account ready → owner@saffronsage.test");
   }
 }
