@@ -6,6 +6,7 @@ import { useUiStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { formatPrice } from '../../lib/format';
 import { FoodImage } from '../ui/FoodImage';
+import {imageUrl} from '../../api/client';
 
 export function CartDrawer() {
   const open = useUiStore((s) => s.cartOpen);
@@ -74,7 +75,7 @@ export function CartDrawer() {
                       exit={{ opacity: 0, x: 40 }}
                       className="flex gap-3 rounded-xl border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900"
                     >
-                      <FoodImage src={item.image} alt={item.name} className="h-16 w-16 shrink-0 rounded-lg" />
+                  <FoodImage src={imageUrl(item.image)} alt={item.name} className="h-16 w-16 shrink-0 rounded-lg" />
                       <div className="flex flex-1 flex-col">
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-sm font-semibold leading-tight">{item.name}</p>

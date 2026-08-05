@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
 import { useConfigStore } from '../store/configStore';
 import { ordersApi } from '../api/endpoints';
 import type { PlaceOrderInput } from '../api/endpoints';
-import { ApiError } from '../api/client';
+import { ApiError, imageUrl } from '../api/client';
 import { formatPrice } from '../lib/format';
 import { FoodImage } from '../components/ui/FoodImage';
 import { Spinner } from '../components/ui/Spinner';
@@ -48,7 +48,7 @@ export function Checkout() {
     );
   }
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const input: PlaceOrderInput = {
@@ -201,7 +201,7 @@ export function Checkout() {
             <div className="space-y-3">
               {items.map((i) => (
                 <div key={i.id} className="flex items-center gap-3">
-                  <FoodImage src={i.image} alt={i.name} className="h-12 w-12 shrink-0 rounded-lg" />
+                  <FoodImage src={imageUrl(i.image)} alt={i.name} className="h-12 w-12 shrink-0 rounded-lg" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{i.name}</p>
                     <p className="text-xs text-stone-500">×{i.quantity}</p>

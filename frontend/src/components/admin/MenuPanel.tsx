@@ -8,6 +8,7 @@ import type { MenuItemInput } from '../../api/endpoints';
 import { formatPrice } from '../../lib/format';
 import { FoodImage } from '../ui/FoodImage';
 import { Spinner } from '../ui/Spinner';
+import { imageUrl } from '../../api/client';
 
 export function MenuPanel({ onChange }: { onChange?: () => void }) {
   const [items, setItems] = useState<MenuItem[] | null>(null);
@@ -66,7 +67,7 @@ export function MenuPanel({ onChange }: { onChange?: () => void }) {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <div key={item.id} className="card flex gap-3 p-3">
-              <FoodImage src={item.image} alt={item.name} className="h-20 w-20 shrink-0 rounded-lg" />
+             <FoodImage src={imageUrl(item.image)} alt={item.name} className="h-20 w-20 shrink-0 rounded-lg"/>
               <div className="flex min-w-0 flex-1 flex-col">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -248,8 +249,8 @@ function ItemEditor({
             <div className="flex items-center gap-3">
               {image ? (
                 <div className="relative shrink-0">
-                  <FoodImage src={image} alt="Dish preview" className="h-16 w-16 rounded-xl" />
-                  <button
+            <FoodImage src={imageUrl(image)} alt="Dish preview" className="h-16 w-16 rounded-xl" />       
+           <button
                     type="button"
                     onClick={() => setImage('')}
                     aria-label="Remove photo"
