@@ -1,6 +1,12 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET must be set in production. Refusing to start with an insecure default.');
+  }
+  console.warn('⚠️  JWT_SECRET not set — using an insecure development-only secret. Set JWT_SECRET before deploying.');
+}
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production';
 
 export function signToken(user) {
   return jwt.sign(

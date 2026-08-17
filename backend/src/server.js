@@ -16,6 +16,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 4500;
 
+// Render sits in front of this app as a reverse proxy. Without this, every
+// request looks like it comes from the same internal IP, which would make
+// the auth rate limiter useless (one shared bucket for all visitors).
+app.set('trust proxy', 1);
+
 const origins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")
   .map((s) => s.trim());
@@ -54,12 +59,13 @@ app.use((err, _req, res, _next) => {
 });
 
 import db from "./db.js";
-import { seed } from "./seed.js";
+import { seed, syncOwnerAccount } from "./seed.js";
 const menuCount = db.prepare("SELECT COUNT(*) as c FROM menu_items").get().c;
 if (menuCount === 0) {
   console.log("🌱 Seeding database...");
   seed();
 }
+syncOwnerAccount();
 
 app.listen(PORT, () => {
   console.log(`API ready on http://localhost:${5173}`);

@@ -1,5 +1,12 @@
 import db from "./db.js";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
+
+// This was the old hardcoded seed login (owner@saffronsage.test / owner123),
+// committed in plain text to a public repo. syncOwnerAccount() below
+// automatically neutralizes it on every boot, even on a database that was
+// already seeded before this fix existed.
+const LEGACY_OWNER_EMAIL = "owner@saffronsage.test";
 
 const img = (id) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=700&q=70`;
@@ -66,20 +73,47 @@ const reset = db.transaction(() => {
 export function seed() {
   reset();
   console.log(`Seeded ${categories.length} categories and ${items.length} menu items.`);
+}
 
-  const ownerEmail = "owner@saffronsage.test";
-  const existingOwner = db.prepare("SELECT id FROM users WHERE email = ?").get(ownerEmail);
-  if (!existingOwner) {
-    db.prepare("INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')")
-      .run("Restaurant Owner", ownerEmail, bcrypt.hashSync("owner123", 10));
-    console.log("Created owner login → owner@saffronsage.test / owner123");
+// Runs on every boot (not just first seed). Two jobs:
+//  1. Neutralize the old hardcoded owner@saffronsage.test / owner123 login,
+//     in case this database was already seeded before this fix — demotes it
+//     to a normal customer account with a random, unknown password.
+//  2. Create or update the real owner account from OWNER_EMAIL / OWNER_PASSWORD
+//     env vars, so the password is never committed to the repo and can be
+//     rotated just by changing the env var and redeploying.
+export function syncOwnerAccount() {
+  const legacy = db.prepare("SELECT id, role FROM users WHERE email = ?").get(LEGACY_OWNER_EMAIL);
+  if (legacy && legacy.role === "owner") {
+    const randomHash = bcrypt.hashSync(randomBytes(24).toString("hex"), 10);
+    db.prepare("UPDATE users SET password_hash = ?, role = 'customer' WHERE id = ?").run(randomHash, legacy.id);
+    console.log(`🔒 Neutralized legacy default owner account (${LEGACY_OWNER_EMAIL}) — demoted, password rotated.`);
+  }
+
+  const ownerEmail = process.env.OWNER_EMAIL;
+  const ownerPassword = process.env.OWNER_PASSWORD;
+  if (!ownerEmail || !ownerPassword) {
+    console.warn(
+      "⚠️  OWNER_EMAIL / OWNER_PASSWORD not set — no owner login exists. " +
+      "Set both in your environment and redeploy to create the owner account."
+    );
+    return;
+  }
+
+  const hash = bcrypt.hashSync(ownerPassword, 10);
+  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(ownerEmail);
+  if (existing) {
+    db.prepare("UPDATE users SET password_hash = ?, role = 'owner' WHERE id = ?").run(hash, existing.id);
+    console.log(`Owner account synced → ${ownerEmail}`);
   } else {
-    db.prepare("UPDATE users SET role = 'owner' WHERE email = ?").run(ownerEmail);
-    console.log("Owner account ready → owner@saffronsage.test");
+    db.prepare("INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')")
+      .run("Restaurant Owner", ownerEmail, hash);
+    console.log(`Created owner login → ${ownerEmail}`);
   }
 }
 
 if (process.argv[1].includes("seed")) {
   seed();
+  syncOwnerAccount();
   process.exit(0);
 }

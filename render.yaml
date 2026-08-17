@@ -23,3 +23,7 @@ services:
         value: 299
       - key: GOOGLE_CLIENT_ID
         sync: false
+      - key: OWNER_EMAIL
+        sync: false
+      - key: OWNER_PASSWORD
+        sync: false

@@ -3,8 +3,20 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import db from '../db.js';
 import { signToken, requireAuth } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many login attempts. Please try again in a few minutes.',
+});
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: 'Too many accounts created from this address. Please try again later.',
+});
 
 const publicUser = (u) => ({
   id: u.id,
@@ -17,7 +29,7 @@ const publicUser = (u) => ({
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-router.post('/signup', (req, res) => {
+router.post('/signup', signupLimiter, (req, res) => {
   const name = (req.body.name || '').trim();
   const email = (req.body.email || '').trim().toLowerCase();
   const password = req.body.password || '';
@@ -38,7 +50,7 @@ router.post('/signup', (req, res) => {
   res.status(201).json({ token: signToken(user), user: publicUser(user) });
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', loginLimiter, (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const password = req.body.password || '';
 
@@ -49,7 +61,7 @@ router.post('/login', (req, res) => {
   res.json({ token: signToken(user), user: publicUser(user) });
 });
 
-router.post('/google', async (req, res) => {
+router.post('/google', loginLimiter, async (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) return res.status(400).json({ error: 'Google sign-in is not configured' });
 
