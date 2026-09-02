@@ -3,7 +3,7 @@ import { UtensilsCrossed, Facebook, Instagram, Twitter } from 'lucide-react';
 import { useConfigStore } from '../../store/configStore';
 
 export function Footer() {
-  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Saffron & Sage');
+  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Crave It');
   return (
     <footer className="mt-20 bg-stone-900 text-stone-300">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:grid-cols-2 md:grid-cols-4">

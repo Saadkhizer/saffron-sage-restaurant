@@ -1,4 +1,4 @@
-# CLAUDE.md — Saffron & Sage restaurant app
+# CLAUDE.md — Crave It restaurant app
 
 Full-stack restaurant ordering site used as a **client demo template** (current
 prospect: Chicken Bureau, a late-night fast-food spot in Bahria Enclave, Islamabad —

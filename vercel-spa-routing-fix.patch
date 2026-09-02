@@ -1,0 +1,12 @@
+ diff --git a/frontend/vercel.json b/frontend/vercel.json
+index 4c98fda..4acab45 100644
+--- a/frontend/vercel.json
++++ b/frontend/vercel.json
+@@ -1,5 +1,5 @@
+ {
+   "rewrites": [
+-    { "source": "/api/:path*", "destination": "https://YOUR-SERVICE.onrender.com/api/:path*" }
++    { "source": "/(.*)", "destination": "/index.html" }
+   ]
+ }
+\ No newline at end of file

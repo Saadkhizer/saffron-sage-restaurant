@@ -1,0 +1,245 @@
+diff --git a/backend/.env.example b/backend/.env.example
+index 90e82ea..1672a68 100644
+--- a/backend/.env.example
++++ b/backend/.env.example
+@@ -8,6 +8,12 @@ CLIENT_ORIGIN=http://localhost:5173
+ JWT_SECRET=change-me-to-a-long-random-secret
+ JWT_EXPIRES_IN=7d
+ 
++# --- Owner / admin login ---
++# Required to create or update the restaurant owner account. Change
++# OWNER_PASSWORD (and redeploy) any time you want to rotate the login.
++OWNER_EMAIL=owner@yourdomain.com
++OWNER_PASSWORD=change-me-to-a-strong-password
++
+ # --- Google OAuth ---
+ # Create credentials at https://console.cloud.google.com/apis/credentials
+ # Leave blank to disable the "Continue with Google" button.
+diff --git a/backend/src/middleware/auth.js b/backend/src/middleware/auth.js
+index 1c73434..262b871 100644
+--- a/backend/src/middleware/auth.js
++++ b/backend/src/middleware/auth.js
+@@ -1,6 +1,12 @@
+ import jwt from 'jsonwebtoken';
+ 
+-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
++if (!process.env.JWT_SECRET) {
++  if (process.env.NODE_ENV === 'production') {
++    throw new Error('JWT_SECRET must be set in production. Refusing to start with an insecure default.');
++  }
++  console.warn('⚠️  JWT_SECRET not set — using an insecure development-only secret. Set JWT_SECRET before deploying.');
++}
++const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production';
+ 
+ export function signToken(user) {
+   return jwt.sign(
+diff --git a/backend/src/middleware/rateLimit.js b/backend/src/middleware/rateLimit.js
+new file mode 100644
+index 0000000..9946a8e
+--- /dev/null
++++ b/backend/src/middleware/rateLimit.js
+@@ -0,0 +1,34 @@
++// Minimal in-memory rate limiter — no extra dependency needed.
++// Good enough for a single-instance Render deployment. Resets on restart,
++// which is fine for its purpose here (slowing down brute force / spam bursts).
++const buckets = new Map();
++
++export function rateLimit({ windowMs, max, message }) {
++  return (req, res, next) => {
++    const key = `${req.ip}:${req.baseUrl}${req.path}`;
++    const now = Date.now();
++    const bucket = buckets.get(key) || { count: 0, resetAt: now + windowMs };
++
++    if (now > bucket.resetAt) {
++      bucket.count = 0;
++      bucket.resetAt = now + windowMs;
++    }
++    bucket.count += 1;
++    buckets.set(key, bucket);
++
++    if (bucket.count > max) {
++      res.set('Retry-After', String(Math.ceil((bucket.resetAt - now) / 1000)));
++      return res.status(429).json({ error: message || 'Too many requests. Please try again shortly.' });
++    }
++    next();
++  };
++}
++
++// Periodic sweep so the map doesn't grow unbounded over a long-running process.
++const sweep = setInterval(() => {
++  const now = Date.now();
++  for (const [key, bucket] of buckets) {
++    if (now > bucket.resetAt) buckets.delete(key);
++  }
++}, 10 * 60 * 1000);
++sweep.unref?.();
+diff --git a/backend/src/routes/auth.js b/backend/src/routes/auth.js
+index 9d91323..b27fa0f 100644
+--- a/backend/src/routes/auth.js
++++ b/backend/src/routes/auth.js
+@@ -3,9 +3,21 @@ import bcrypt from 'bcryptjs';
+ import { OAuth2Client } from 'google-auth-library';
+ import db from '../db.js';
+ import { signToken, requireAuth } from '../middleware/auth.js';
++import { rateLimit } from '../middleware/rateLimit.js';
+ 
+ const router = Router();
+ 
++const loginLimiter = rateLimit({
++  windowMs: 15 * 60 * 1000,
++  max: 10,
++  message: 'Too many login attempts. Please try again in a few minutes.',
++});
++const signupLimiter = rateLimit({
++  windowMs: 60 * 60 * 1000,
++  max: 10,
++  message: 'Too many accounts created from this address. Please try again later.',
++});
++
+ const publicUser = (u) => ({
+   id: u.id,
+   name: u.name,
+@@ -17,7 +29,7 @@ const publicUser = (u) => ({
+ 
+ const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+ 
+-router.post('/signup', (req, res) => {
++router.post('/signup', signupLimiter, (req, res) => {
+   const name = (req.body.name || '').trim();
+   const email = (req.body.email || '').trim().toLowerCase();
+   const password = req.body.password || '';
+@@ -38,7 +50,7 @@ router.post('/signup', (req, res) => {
+   res.status(201).json({ token: signToken(user), user: publicUser(user) });
+ });
+ 
+-router.post('/login', (req, res) => {
++router.post('/login', loginLimiter, (req, res) => {
+   const email = (req.body.email || '').trim().toLowerCase();
+   const password = req.body.password || '';
+ 
+@@ -49,7 +61,7 @@ router.post('/login', (req, res) => {
+   res.json({ token: signToken(user), user: publicUser(user) });
+ });
+ 
+-router.post('/google', async (req, res) => {
++router.post('/google', loginLimiter, async (req, res) => {
+   const clientId = process.env.GOOGLE_CLIENT_ID;
+   if (!clientId) return res.status(400).json({ error: 'Google sign-in is not configured' });
+ 
+diff --git a/backend/src/seed.js b/backend/src/seed.js
+index 35cd5f9..b05ef46 100644
+--- a/backend/src/seed.js
++++ b/backend/src/seed.js
+@@ -1,5 +1,12 @@
+ import db from "./db.js";
+ import bcrypt from "bcryptjs";
++import { randomBytes } from "crypto";
++
++// This was the old hardcoded seed login (owner@saffronsage.test / owner123),
++// committed in plain text to a public repo. syncOwnerAccount() below
++// automatically neutralizes it on every boot, even on a database that was
++// already seeded before this fix existed.
++const LEGACY_OWNER_EMAIL = "owner@saffronsage.test";
+ 
+ const img = (id) =>
+   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=700&q=70`;
+@@ -66,20 +73,47 @@ const reset = db.transaction(() => {
+ export function seed() {
+   reset();
+   console.log(`Seeded ${categories.length} categories and ${items.length} menu items.`);
++}
+ 
+-  const ownerEmail = "owner@saffronsage.test";
+-  const existingOwner = db.prepare("SELECT id FROM users WHERE email = ?").get(ownerEmail);
+-  if (!existingOwner) {
+-    db.prepare("INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')")
+-      .run("Restaurant Owner", ownerEmail, bcrypt.hashSync("owner123", 10));
+-    console.log("Created owner login → owner@saffronsage.test / owner123");
++// Runs on every boot (not just first seed). Two jobs:
++//  1. Neutralize the old hardcoded owner@saffronsage.test / owner123 login,
++//     in case this database was already seeded before this fix — demotes it
++//     to a normal customer account with a random, unknown password.
++//  2. Create or update the real owner account from OWNER_EMAIL / OWNER_PASSWORD
++//     env vars, so the password is never committed to the repo and can be
++//     rotated just by changing the env var and redeploying.
++export function syncOwnerAccount() {
++  const legacy = db.prepare("SELECT id, role FROM users WHERE email = ?").get(LEGACY_OWNER_EMAIL);
++  if (legacy && legacy.role === "owner") {
++    const randomHash = bcrypt.hashSync(randomBytes(24).toString("hex"), 10);
++    db.prepare("UPDATE users SET password_hash = ?, role = 'customer' WHERE id = ?").run(randomHash, legacy.id);
++    console.log(`🔒 Neutralized legacy default owner account (${LEGACY_OWNER_EMAIL}) — demoted, password rotated.`);
++  }
++
++  const ownerEmail = process.env.OWNER_EMAIL;
++  const ownerPassword = process.env.OWNER_PASSWORD;
++  if (!ownerEmail || !ownerPassword) {
++    console.warn(
++      "⚠️  OWNER_EMAIL / OWNER_PASSWORD not set — no owner login exists. " +
++      "Set both in your environment and redeploy to create the owner account."
++    );
++    return;
++  }
++
++  const hash = bcrypt.hashSync(ownerPassword, 10);
++  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(ownerEmail);
++  if (existing) {
++    db.prepare("UPDATE users SET password_hash = ?, role = 'owner' WHERE id = ?").run(hash, existing.id);
++    console.log(`Owner account synced → ${ownerEmail}`);
+   } else {
+-    db.prepare("UPDATE users SET role = 'owner' WHERE email = ?").run(ownerEmail);
+-    console.log("Owner account ready → owner@saffronsage.test");
++    db.prepare("INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'owner')")
++      .run("Restaurant Owner", ownerEmail, hash);
++    console.log(`Created owner login → ${ownerEmail}`);
+   }
+ }
+ 
+ if (process.argv[1].includes("seed")) {
+   seed();
++  syncOwnerAccount();
+   process.exit(0);
+ }
+\ No newline at end of file
+diff --git a/backend/src/server.js b/backend/src/server.js
+index 052b309..566cf4f 100644
+--- a/backend/src/server.js
++++ b/backend/src/server.js
+@@ -16,6 +16,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
+ const app = express();
+ const PORT = process.env.PORT || 4500;
+ 
++// Render sits in front of this app as a reverse proxy. Without this, every
++// request looks like it comes from the same internal IP, which would make
++// the auth rate limiter useless (one shared bucket for all visitors).
++app.set('trust proxy', 1);
++
+ const origins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
+   .split(",")
+   .map((s) => s.trim());
+@@ -54,12 +59,13 @@ app.use((err, _req, res, _next) => {
+ });
+ 
+ import db from "./db.js";
+-import { seed } from "./seed.js";
++import { seed, syncOwnerAccount } from "./seed.js";
+ const menuCount = db.prepare("SELECT COUNT(*) as c FROM menu_items").get().c;
+ if (menuCount === 0) {
+   console.log("🌱 Seeding database...");
+   seed();
+ }
++syncOwnerAccount();
+ 
+ app.listen(PORT, () => {
+   console.log(`API ready on http://localhost:${5173}`);
+diff --git a/render.yaml b/render.yaml
+index 507a7ba..5bbf751 100644
+--- a/render.yaml
++++ b/render.yaml
+@@ -23,3 +23,7 @@ services:
+         value: 299
+       - key: GOOGLE_CLIENT_ID
+         sync: false
++      - key: OWNER_EMAIL
++        sync: false
++      - key: OWNER_PASSWORD
++        sync: false
