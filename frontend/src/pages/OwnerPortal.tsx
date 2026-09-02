@@ -12,7 +12,7 @@ const perks = [
 // Standalone landing page for restaurant staff — keeps the owner-console entry
 // point off the customer login/signup forms entirely.
 export function OwnerPortal() {
-  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Crave It');
+  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Saffron & Sage');
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">

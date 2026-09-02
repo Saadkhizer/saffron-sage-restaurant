@@ -15,7 +15,7 @@ type Tab = 'orders' | 'menu';
 export function AdminConsole() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Crave It');
+  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Saffron & Sage');
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('orders');
   const [stats, setStats] = useState<AdminStats | null>(null);

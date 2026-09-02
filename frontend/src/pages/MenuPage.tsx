@@ -12,7 +12,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { useConfigStore } from '../store/configStore';
 
 export function MenuPage() {
-  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Crave It');
+  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Saffron & Sage');
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<MenuItem[] | null>(null);
   const [activeCat, setActiveCat] = useState('all');

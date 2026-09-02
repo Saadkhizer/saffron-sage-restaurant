@@ -6,7 +6,7 @@ const router = Router();
 // at runtime instead of baking values in at build time.
 router.get('/', (_req, res) => {
   res.json({
-    restaurantName: process.env.RESTAURANT_NAME || 'Crave It',
+    restaurantName: process.env.RESTAURANT_NAME || 'Saffron & Sage',
     currencyCode: process.env.CURRENCY_CODE || 'USD',
     currencySymbol: process.env.CURRENCY_SYMBOL || '$',
     deliveryFeeCents: Number(process.env.DELIVERY_FEE_CENTS || 299),

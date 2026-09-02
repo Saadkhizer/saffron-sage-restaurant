@@ -1,4 +1,4 @@
-# Crave It — Restaurant Ordering Website
+# Saffron & Sage — Restaurant Ordering Website
 
 A full-stack, fully responsive restaurant site: browse a categorized menu, build a
 persisted cart, sign in, and place a delivery/pickup order with live order tracking.

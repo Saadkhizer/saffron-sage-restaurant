@@ -38,7 +38,7 @@ const testimonials = [
   },
   {
     quote:
-      "Great variety, excellent service, and super fast delivery. Crave It is my go-to for date nights in.",
+      "Great variety, excellent service, and super fast delivery. Saffron & Sage is my go-to for date nights in.",
     name: "James Anderson",
     location: "New York, NY",
   },
@@ -52,7 +52,7 @@ const testimonials = [
 
 export function Home() {
   const name = useConfigStore(
-    (s) => s.config?.restaurantName ?? "Crave It",
+    (s) => s.config?.restaurantName ?? "Saffron & Sage",
   );
   const [popular, setPopular] = useState<MenuItem[] | null>(null);
 

@@ -14,7 +14,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: RESTAURANT_NAME
-        value: Crave It
+        value: Saffron & Sage
       - key: CURRENCY_CODE
         value: PKR
       - key: CURRENCY_SYMBOL

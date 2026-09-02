@@ -23,7 +23,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       // Fall back to safe defaults so the app still renders if config fails.
       set({
         config: {
-          restaurantName: 'Crave It',
+          restaurantName: 'Saffron & Sage',
           currencyCode: 'USD',
           currencySymbol: '$',
           deliveryFeeCents: 299,

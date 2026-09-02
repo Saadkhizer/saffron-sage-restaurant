@@ -35,7 +35,7 @@ export function Navbar() {
   const dark = useThemeStore((s) => s.dark);
   const toggleTheme = useThemeStore((s) => s.toggle);
   const openCart = useUiStore((s) => s.openCart);
-  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Crave It');
+  const name = useConfigStore((s) => s.config?.restaurantName ?? 'Saffron & Sage');
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
