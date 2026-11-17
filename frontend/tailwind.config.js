@@ -41,9 +41,16 @@ export default {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
         },
+        // Hero: slow "breathing" halo behind the burger.
+        breathe: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+          '50%': { transform: 'scale(1.08)', opacity: '1' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.5s infinite',
+        breathe: 'breathe 6s ease-in-out infinite',
+        'breathe-slow': 'breathe 9s ease-in-out infinite',
       },
     },
   },

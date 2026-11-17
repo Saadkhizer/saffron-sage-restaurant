@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import clsx from "clsx";
 import {
   ArrowRight,
   ChevronDown,
+  Clock,
   Flame,
   Leaf,
   ChefHat,
@@ -65,123 +67,95 @@ export function Home() {
 
   return (
     <div>
-      {/* Hero — bold, dark, burger-forward */}
-      <section className="relative overflow-hidden bg-stone-950 text-white">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-brand-600/25 blur-3xl" />
-          <div className="absolute -right-10 top-1/3 h-80 w-80 rounded-full bg-gold-500/20 blur-3xl" />
+      {/* ===== Hero ========================================================
+          Light: warm porcelain "contemporary gourmet". Dark: warm obsidian
+          "mood dining". The dish photo sits in an editorial rounded frame
+          rather than a cut-out — the source image has a baked-in dark studio
+          background, and masking it to a circle read as a flat sticker. Drop
+          a transparent-background PNG into /public and the frame can become a
+          free-floating cut-out without touching this layout.
+      =================================================================== */}
+      <section className="relative overflow-hidden bg-[#FAF8F5] text-neutral-900 transition-colors duration-300 dark:bg-[#0F0E0D] dark:text-neutral-100">
+        {/* Ambient warmth: kitchen light pooling from above, a faint ember to
+            the left, and a microscopic dot grid for texture. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute inset-x-0 top-0 h-3/5 bg-gradient-to-b from-amber-100/60 via-transparent to-transparent dark:from-amber-500/[0.08]" />
+          <div className="absolute -left-40 top-12 h-96 w-96 rounded-full bg-red-200/25 blur-3xl dark:bg-red-900/15" />
           <div
-            className="absolute inset-0 opacity-[0.06]"
+            className="absolute inset-0 opacity-[0.07] dark:opacity-[0.05]"
             style={{
-              backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
-              backgroundSize: "26px 26px",
+              backgroundImage:
+                "radial-gradient(currentColor 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
             }}
           />
         </div>
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24 lg:px-8">
-          {/* Copy */}
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 md:grid-cols-2 md:gap-10 md:py-24 lg:gap-16 lg:px-8">
+          {/* ---------- Copy ---------- */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-sm font-semibold text-gold-400">
-              <Flame size={14} /> Flame-grilled · Fresh · Bold
-            </span>
-            <h1 className="mt-5 font-display text-5xl font-bold uppercase leading-[0.92] sm:text-6xl lg:text-7xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200/80 bg-white/90 px-3.5 py-1.5 text-sm font-semibold text-red-700 shadow-sm shadow-neutral-900/5 backdrop-blur-md transition-colors duration-300 dark:border-neutral-800/80 dark:bg-neutral-900/80 dark:text-amber-400 dark:shadow-none">
+                <Flame size={14} /> Flame-grilled · Fresh · Bold
+              </span>
+              {/* On phones the delivery promise rides here instead of floating
+                  over the photo, so nothing covers the food. */}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200/80 bg-white/90 px-3 py-1.5 text-sm font-semibold text-neutral-700 shadow-sm shadow-neutral-900/5 backdrop-blur-md transition-colors duration-300 dark:border-neutral-800/80 dark:bg-neutral-900/80 dark:text-neutral-200 dark:shadow-none md:hidden">
+                <Clock size={14} className="text-red-700 dark:text-amber-400" />
+                30 min delivery
+              </span>
+            </div>
+
+            <h1 className="mt-6 font-display text-[2.75rem] font-bold uppercase leading-[0.9] sm:text-6xl lg:text-7xl">
               Crave it.
               <br />
-              Grab <span className="text-gold-400">it.</span>
+              Grab <span className="text-red-700 dark:text-amber-400">it.</span>
             </h1>
-            <p className="mt-5 max-w-md text-lg text-stone-300">
+
+            <p className="mt-5 max-w-md text-base leading-relaxed text-neutral-600 transition-colors duration-300 dark:text-neutral-400 sm:text-lg">
               Juicy, stacked-to-order burgers and fast-food favorites at {name}{" "}
               — delivered hot and done your way.
             </p>
+
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/menu" className="btn-primary h-12 px-7 text-base">
+              <Link
+                to="/menu"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-700 px-7 sm:w-auto text-base font-semibold text-white shadow-lg shadow-red-700/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-800 hover:shadow-xl hover:shadow-red-700/30 active:translate-y-0"
+              >
                 Order Now <ArrowRight size={18} />
               </Link>
               <a
                 href="#dishes"
-                className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/20 px-6 text-base font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white/70 px-6 sm:w-auto text-base font-semibold text-neutral-800 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:bg-white dark:border-neutral-800/80 dark:bg-neutral-900/70 dark:text-neutral-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-900"
               >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-gold-500 text-stone-900">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-amber-400 text-neutral-900">
                   <ChevronDown size={16} />
                 </span>
                 See Popular Dishes
               </a>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
+            <div className="mt-10 grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-4">
               {features.map((f) => (
                 <div key={f.title} className="flex flex-col gap-1.5">
-                  <f.icon size={22} className="text-gold-400" />
-                  <p className="text-sm font-semibold leading-tight text-white">
+                  <f.icon size={22} className="text-red-700 dark:text-amber-400" />
+                  <p className="text-sm font-semibold leading-tight">
                     {f.title}
                   </p>
-                  <p className="text-xs text-stone-400">{f.text}</p>
+                  <p className="text-xs text-neutral-600 transition-colors duration-300 dark:text-neutral-400">
+                    {f.text}
+                  </p>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Burger + floating dish cards */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative mx-auto w-full max-w-sm md:max-w-none"
-          >
-            {/* glow behind the burger */}
-            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-brand-600/50 to-gold-500/40 blur-3xl" />
-            {/* burger displayed directly on the page — soft radial fade, no card frame */}
-            <img
-              src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=85"
-              alt="A juicy gourmet cheeseburger"
-              className="relative aspect-square w-full scale-105 object-cover drop-shadow-2xl"
-              style={{
-                WebkitMaskImage:
-                  "radial-gradient(circle at 50% 47%, #000 55%, transparent 72%)",
-                maskImage:
-                  "radial-gradient(circle at 50% 47%, #000 55%, transparent 72%)",
-              }}
-              onError={(e) => (e.currentTarget.style.display = "none")}
-            />
-
-            {/* Delivery badge */}
-            <div className="absolute right-0 top-6 rounded-2xl bg-white/10 px-4 py-2 text-center ring-1 ring-white/15 backdrop-blur">
-              <p className="text-lg font-bold text-gold-400">30 Min</p>
-              <p className="text-[11px] text-stone-300">Delivery</p>
-            </div>
-
-            {/* Floating popular items */}
-            {popular?.slice(0, 2).map((it, i) => (
-              <motion.div
-                key={it.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 + i * 0.15 }}
-                className={`absolute flex items-center gap-2 rounded-2xl bg-white/10 p-2 pr-3 ring-1 ring-white/15 backdrop-blur ${
-                  i === 0 ? "-left-2 bottom-16 sm:-left-6" : "bottom-2 right-2"
-                }`}
-              >
-                <FoodImage
-                  src={imageUrl(it.image)}
-                  alt={it.name}
-                  className="h-11 w-11 rounded-xl"
-                />
-                <div>
-                  <p className="max-w-28 truncate text-xs font-semibold leading-tight text-white">
-                    {it.name}
-                  </p>
-                  <p className="text-xs font-bold text-gold-400">
-                    {formatPrice(it.priceCents)}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          {/* ---------- Food ---------- */}
+          <HeroVisual popular={popular} />
         </div>
       </section>
 
@@ -334,5 +308,142 @@ function NewsletterForm() {
         Subscribe
       </button>
     </form>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Hero visual: the framed dish photo, its ambient backlight and contact
+   shadow, and the floating micro-cards.
+
+   The gentle float runs through Framer Motion rather than CSS so it can stop
+   when the hero scrolls out of view, and never starts at all for visitors who
+   ask their OS to reduce motion.
+--------------------------------------------------------------------------- */
+function HeroVisual({ popular }: { popular: MenuItem[] | null }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.25 });
+  const reduceMotion = useReducedMotion();
+  const floating = inView && !reduceMotion;
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="relative mx-auto w-full max-w-md md:max-w-none"
+    >
+      {/* Warm backlight, breathing slowly behind the plate */}
+      <div aria-hidden className="pointer-events-none absolute -inset-8">
+        <div className="hero-backlight absolute inset-0 animate-breathe" />
+      </div>
+
+      <motion.div
+        animate={floating ? { y: [0, -14, 0] } : { y: 0 }}
+        transition={
+          floating
+            ? { duration: 7, repeat: Infinity, ease: "easeInOut" }
+            : { duration: 0.4 }
+        }
+        className="relative"
+      >
+        {/* Organic contact shadow — grounds the frame instead of letting it
+            hover in empty space. */}
+        <div
+          aria-hidden
+          className="hero-contact-shadow pointer-events-none absolute -bottom-7 left-1/2 h-10 w-[72%] -translate-x-1/2"
+        />
+
+        <figure className="hero-frame group relative overflow-hidden rounded-[2.5rem] border border-neutral-200/60 bg-neutral-100 transition-colors duration-300 dark:border-neutral-800/60 dark:bg-neutral-900">
+          <img
+            src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=90"
+            alt="A flame-grilled smash burger stacked with melted cheddar, pickles and crisp lettuce"
+            className="hero-photo aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] md:aspect-[4/5]"
+          />
+          {/* Depth: light pooling at the top, grounding at the bottom */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/5 dark:from-black/50"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-inset ring-white/10"
+          />
+        </figure>
+
+        {/* Delivery badge — floats at the frame's shoulder on desktop only;
+            phones get the pill in the copy column instead. */}
+        <div className="absolute -right-3 top-8 hidden rounded-2xl border border-neutral-200/80 bg-white/90 px-4 py-2.5 text-center shadow-lg shadow-neutral-900/5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 dark:border-neutral-800/80 dark:bg-neutral-900/80 dark:shadow-2xl dark:shadow-black/40 md:block">
+          <p className="text-lg font-bold leading-none text-red-700 dark:text-amber-400">
+            30 Min
+          </p>
+          <p className="mt-1 text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+            Delivery
+          </p>
+        </div>
+
+        {/* Dish chips float at the frame's corners on desktop */}
+        {popular?.slice(0, 2).map((it, i) => (
+          <DishChip
+            key={it.id}
+            item={it}
+            delay={0.35 + i * 0.15}
+            className={clsx(
+              "absolute hidden max-w-[13rem] md:flex",
+              i === 0 ? "-left-6 bottom-24" : "-right-5 bottom-6",
+            )}
+          />
+        ))}
+      </motion.div>
+
+      {/* …and sit in a tidy row beneath it on phones, where overlapping would
+          cover the food. */}
+      <div className="mt-5 flex gap-3 md:hidden">
+        {popular?.slice(0, 2).map((it, i) => (
+          <DishChip
+            key={it.id}
+            item={it}
+            delay={0.3 + i * 0.12}
+            className="flex min-w-0 flex-1"
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+function DishChip({
+  item,
+  className,
+  delay = 0,
+}: {
+  item: MenuItem;
+  className?: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={clsx(
+        "items-center gap-2.5 rounded-2xl border border-neutral-200/80 bg-white/90 p-2 pr-4 shadow-lg shadow-neutral-900/5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-neutral-800/80 dark:bg-neutral-900/80 dark:shadow-2xl dark:shadow-black/40",
+        className,
+      )}
+    >
+      <FoodImage
+        src={imageUrl(item.image)}
+        alt={item.name}
+        className="h-11 w-11 shrink-0 rounded-xl"
+      />
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold leading-tight text-neutral-900 dark:text-neutral-100">
+          {item.name}
+        </p>
+        <p className="text-xs font-bold text-red-700 dark:text-amber-400">
+          {formatPrice(item.priceCents)}
+        </p>
+      </div>
+    </motion.div>
   );
 }

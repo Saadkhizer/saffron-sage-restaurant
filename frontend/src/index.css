@@ -41,6 +41,89 @@
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Hero depth
+
+   Three stacked layers give the dish real presence instead of the flat-sticker
+   look a hard crop produces:
+
+   1. .hero-backlight   — a warm amber bloom behind the frame. Saffron-gold on
+                          the porcelain light theme; a dimmer ember at night so
+                          it reads as backlight rather than a lamp.
+   2. .hero-contact-shadow — a soft elliptical pool under the frame, so it is
+                          grounded on the page instead of hovering in space.
+   3. .hero-frame       — a three-stop shadow (tight//mid/wide) rather than one
+                          flat drop shadow, which is what makes the card feel
+                          lifted rather than pasted on.
+--------------------------------------------------------------------------- */
+.hero-backlight {
+  border-radius: 9999px;
+  filter: blur(56px);
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(251, 191, 36, 0.4),
+    rgba(185, 28, 28, 0.14) 55%,
+    transparent 75%
+  );
+}
+.dark .hero-backlight {
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(245, 158, 11, 0.24),
+    rgba(185, 28, 28, 0.15) 55%,
+    transparent 75%
+  );
+}
+
+.hero-contact-shadow {
+  border-radius: 50%;
+  filter: blur(18px);
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(68, 36, 20, 0.3),
+    rgba(68, 36, 20, 0.1) 45%,
+    transparent 72%
+  );
+}
+.dark .hero-contact-shadow {
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(0, 0, 0, 0.7),
+    rgba(0, 0, 0, 0.28) 45%,
+    transparent 72%
+  );
+}
+
+.hero-frame {
+  box-shadow:
+    0 2px 4px rgba(68, 36, 20, 0.04),
+    0 12px 24px -8px rgba(68, 36, 20, 0.12),
+    0 32px 64px -24px rgba(68, 36, 20, 0.3);
+}
+.dark .hero-frame {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 18px 36px -12px rgba(0, 0, 0, 0.6),
+    0 40px 80px -30px rgba(0, 0, 0, 0.85);
+}
+
+/* Warm grade on the dish photo so it stays appetising on the cool-neutral
+   porcelain ground, and keeps its richness at night. */
+.hero-photo {
+  filter: saturate(1.08) contrast(1.04);
+}
+.dark .hero-photo {
+  filter: saturate(1.05) contrast(1.06) brightness(0.96);
+}
+
+/* Respect the OS "reduce motion" setting — glow stays, movement stops. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe,
+  .animate-breathe-slow {
+    animation: none !important;
+  }
+}
+
 /* Loading skeleton shimmer */
 .skeleton {
   @apply relative overflow-hidden bg-stone-200 dark:bg-stone-800;

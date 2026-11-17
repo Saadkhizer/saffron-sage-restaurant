@@ -68,5 +68,5 @@ if (menuCount === 0) {
 syncOwnerAccount();
 
 app.listen(PORT, () => {
-  console.log(`API ready on http://localhost:${5173}`);
+  console.log(`API ready on http://localhost:${PORT}`);
 });
